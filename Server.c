@@ -7,16 +7,16 @@
 #include "Packet.h"
 
 int getNumberOfSubscribers();
-void loadVerificationDatabase(struct subscriber_status_details *subscriber_details);
+void readVerificationDatabaseFromTxt(struct SubscriptionInfo *subscriber_details);
 
 int main()
 {
 
-    struct identification_packet id_packet;
+    struct DataPacket data_packet;
     int num_subscribers = getNumberOfSubscribers();
-    struct subscriber_status_details subscriber_details[num_subscribers];
+    struct SubscriptionInfo subscriber_details[num_subscribers];
 
-    loadVerificationDatabase(subscriber_details);
+    readVerificationDatabaseFromTxt(subscriber_details);
 
     for (int i = 0; i < num_subscribers; i++)
     {
@@ -47,7 +47,7 @@ int main()
 
         printf("Received packet %s\n", buffer);
 
-        int response = decodePacket(buffer, &id_packet);
+        int response = parsePacketFromBuffer(buffer, &data_packet);
 
         // Verify the subscriber against subscriber_details
         int i = 0;
@@ -56,11 +56,11 @@ int main()
         {
 
             // Check if subscriber found and if technology matches
-            if (id_packet.payload.source_subscriber_no == subscriber_details[i].subscriber_no && subscriber_details[i].technology == id_packet.payload.technology)
+            if (data_packet.payload.subscriber_no == subscriber_details[i].subscriber_no && subscriber_details[i].technology == data_packet.payload.technology)
             {
 
                 // Verify if paid or not
-                id_packet.status = (subscriber_details[i].paid == 1) ? ACCESS_OK : NOT_PAID;
+                data_packet.status = (subscriber_details[i].paid == 1) ? ACCESS_OK : NOT_PAID;
                 subscriberFound = 1;
                 break;
             }
@@ -70,12 +70,12 @@ int main()
         // If subscriber not found or if subscriber found but technology does not match
         if (subscriberFound == 0)
         {
-            id_packet.status = NOT_EXIST;
+            data_packet.status = NOT_EXIST;
         }
 
-        printStatus(id_packet.status);
+        printStatus(data_packet.status);
 
-        int packet_length = buildPacket(id_packet, buffer);
+        int packet_length = generatePacketBufferToSend(data_packet, buffer);
 
         // Send ACK or REJECT packet to client.
         sendto(server_socket, buffer, packet_length, 0, (struct sockaddr *)&sender, sendsize);
@@ -107,7 +107,7 @@ int getNumberOfSubscribers()
     return lines;
 }
 
-void loadVerificationDatabase(struct subscriber_status_details *subscriber_details)
+void readVerificationDatabaseFromTxt(struct SubscriptionInfo *subscriber_details)
 {
 
     FILE *fp;

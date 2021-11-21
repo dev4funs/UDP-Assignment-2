@@ -2,7 +2,6 @@
 
 #define START_PACKET_ID 0xFFFF
 #define END_PACKET_ID 0xFFFF
-
 #define ACC_PER 0xFFF8
 #define NOT_PAID 0xFFF9
 #define NOT_EXIST 0xFFFA
@@ -10,24 +9,24 @@
 
 const int PORT_NO = 7891;
 
-struct _payload
+struct Payload
 {
     char technology;
-    unsigned int source_subscriber_no;
+    unsigned int subscriber_no;
 };
 
-struct identification_packet
+struct DataPacket
 {
     unsigned short start_packet_id;
     char client_id;
     unsigned short status;
     char segment_no;
     char length;
-    struct _payload payload;
+    struct Payload payload;
     unsigned short end_packet_id;
 };
 
-struct subscriber_status_details
+struct SubscriptionInfo
 {
     unsigned int subscriber_no;
     char technology;
@@ -35,37 +34,36 @@ struct subscriber_status_details
 };
 
 /**
- * This function builds the buffer to be sent using the data in the req_packet 
- * Input params are req_packet and buffer
+ * This function builds the buffer to be sent using the data in the data_packet 
+ * Input params are data_packet and buffer
  * Output is the length of the data in the buffer
  **/
-int buildPacket(struct identification_packet req_packet, char *buffer)
+int generatePacketBufferToSend(struct DataPacket data_packet, char *buffer)
 {
-
     int buffer_length = 0;
 
-    memcpy(&buffer[buffer_length], &req_packet.start_packet_id, 2);
+    memcpy(&buffer[buffer_length], &data_packet.start_packet_id, 2);
     buffer_length += 2;
 
-    buffer[buffer_length] = req_packet.client_id;
+    buffer[buffer_length] = data_packet.client_id;
     buffer_length += 1;
 
-    memcpy(&buffer[buffer_length], &req_packet.status, 2);
+    memcpy(&buffer[buffer_length], &data_packet.status, 2);
     buffer_length += 2;
 
-    buffer[buffer_length] = req_packet.segment_no;
+    buffer[buffer_length] = data_packet.segment_no;
     buffer_length += 1;
 
-    buffer[buffer_length] = req_packet.length;
+    buffer[buffer_length] = data_packet.length;
     buffer_length += 1;
 
-    buffer[buffer_length] = req_packet.payload.technology;
+    buffer[buffer_length] = data_packet.payload.technology;
     buffer_length += 1;
 
-    memcpy(&buffer[buffer_length], &req_packet.payload.source_subscriber_no, 4);
+    memcpy(&buffer[buffer_length], &data_packet.payload.subscriber_no, 4);
     buffer_length += 4;
 
-    memcpy(&buffer[buffer_length], &req_packet.end_packet_id, 2);
+    memcpy(&buffer[buffer_length], &data_packet.end_packet_id, 2);
     buffer_length += 2;
 
     buffer[buffer_length + 1] = '\0';
@@ -74,57 +72,87 @@ int buildPacket(struct identification_packet req_packet, char *buffer)
 }
 
 /**
- * This method decodes data in the buffer into the identification packet
- * Input params are buffer and id_packet
+ * This method decodes data in the buffer into the data packet
+ * Input params are buffer and data_packet
  * Output is an int - 
  **/
-int decodePacket(char *buffer, struct identification_packet *id_packet)
+int parsePacketFromBuffer(char *buffer, struct DataPacket *data_packet)
 {
 
     int buffer_length = 0;
 
-    memcpy(&(id_packet->start_packet_id), buffer + buffer_length, 2);
+    memcpy(&(data_packet->start_packet_id), buffer + buffer_length, 2);
     buffer_length += 2;
 
-    id_packet->client_id = buffer[buffer_length];
+    data_packet->client_id = buffer[buffer_length];
     buffer_length += 1;
 
-    memcpy(&(id_packet->status), buffer + buffer_length, 2);
+    memcpy(&(data_packet->status), buffer + buffer_length, 2);
     buffer_length += 2;
 
-    id_packet->segment_no = buffer[buffer_length];
+    data_packet->segment_no = buffer[buffer_length];
     buffer_length += 1;
 
-    id_packet->length = buffer[buffer_length];
+    data_packet->length = buffer[buffer_length];
     buffer_length += 1;
 
-    id_packet->payload.technology = buffer[buffer_length];
+    data_packet->payload.technology = buffer[buffer_length];
     buffer_length += 1;
 
-    memcpy(&(id_packet->payload.source_subscriber_no), buffer + buffer_length, 4);
+    memcpy(&(data_packet->payload.subscriber_no), buffer + buffer_length, 4);
     buffer_length += 4;
 
-    memcpy(&(id_packet->end_packet_id), buffer + buffer_length, 2);
+    memcpy(&(data_packet->end_packet_id), buffer + buffer_length, 2);
     buffer_length += 2;
 
     return buffer_length;
 }
 
+char *description(unsigned short code)
+{
+    if (0xFFF9 == code)
+    {
+        return "NOT_PAID";
+    }
+    if (0xFFFA == code)
+    {
+        return "NOT_EXIST";
+    }
+    if (0xFFFB == code)
+    {
+        return "ACCESS_OK";
+    }
+    return "Unknow";
+}
+
 void printStatus(unsigned short status)
 {
-
     switch (status)
     {
-    case 0xFFF9:
-        printf("REJECT %x - NOT_PAID\n", NOT_PAID);
+    case ACCESS_OK:
+        printf("ACCESS PERMISSION GRANTED %x - %s\n", ACCESS_OK, description(ACCESS_OK));
         break;
-    case 0xFFFA:
-        printf("REJECT %x - NOT_EXIST\n", NOT_EXIST);
+    case NOT_PAID:
+        printf("REJECT %x - %s\n", NOT_PAID, description(NOT_PAID));
         break;
-    case 0xFFFB:
-        printf("ACCESS PERMISSION GRANTED %x - ACCESS_OK\n", ACCESS_OK);
+    case NOT_EXIST:
+        printf("REJECT %x - %s\n", NOT_EXIST, description(NOT_EXIST));
         break;
     }
+}
+
+struct DataPacket generateReqPacket(int technology, int subscriber_no, int segment_number)
+{
+    struct DataPacket req_packet;
+    req_packet.start_packet_id = START_PACKET_ID;
+    req_packet.client_id = 24;
+    req_packet.status = ACC_PER;
+    req_packet.payload.technology = technology;
+    req_packet.payload.subscriber_no = subscriber_no;
+    req_packet.segment_no = segment_number;
+    req_packet.length = 5;
+    req_packet.end_packet_id = END_PACKET_ID;
+    return req_packet;
 }
 
 struct sockaddr_in GetServerAddress(int port_no)
