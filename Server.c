@@ -30,10 +30,7 @@ int main()
     server_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     /*---- Configure server address struct ----*/
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(7891);
-    serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddr = GetServerAddress(PORT_NO);
 
     /*---- Bind the address struct to the socket ----*/
     bind(server_socket, (struct sockaddr *)&serverAddr, sizeof(serverAddr));

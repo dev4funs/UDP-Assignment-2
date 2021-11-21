@@ -8,12 +8,16 @@
 #define NOT_EXIST 0xFFFA
 #define ACCESS_OK 0xFFFB
 
-struct _payload {
+const int PORT_NO = 7891;
+
+struct _payload
+{
     char technology;
     unsigned int source_subscriber_no;
 };
 
-struct identification_packet {
+struct identification_packet
+{
     unsigned short start_packet_id;
     char client_id;
     unsigned short status;
@@ -23,7 +27,8 @@ struct identification_packet {
     unsigned short end_packet_id;
 };
 
-struct subscriber_status_details {
+struct subscriber_status_details
+{
     unsigned int subscriber_no;
     char technology;
     char paid;
@@ -34,7 +39,8 @@ struct subscriber_status_details {
  * Input params are req_packet and buffer
  * Output is the length of the data in the buffer
  **/
-int buildPacket(struct identification_packet req_packet, char* buffer) {
+int buildPacket(struct identification_packet req_packet, char *buffer)
+{
 
     int buffer_length = 0;
 
@@ -72,7 +78,8 @@ int buildPacket(struct identification_packet req_packet, char* buffer) {
  * Input params are buffer and id_packet
  * Output is an int - 
  **/
-int decodePacket(char* buffer, struct identification_packet* id_packet) {
+int decodePacket(char *buffer, struct identification_packet *id_packet)
+{
 
     int buffer_length = 0;
 
@@ -81,7 +88,7 @@ int decodePacket(char* buffer, struct identification_packet* id_packet) {
 
     id_packet->client_id = buffer[buffer_length];
     buffer_length += 1;
-    
+
     memcpy(&(id_packet->status), buffer + buffer_length, 2);
     buffer_length += 2;
 
@@ -99,15 +106,34 @@ int decodePacket(char* buffer, struct identification_packet* id_packet) {
 
     memcpy(&(id_packet->end_packet_id), buffer + buffer_length, 2);
     buffer_length += 2;
-    
+
     return buffer_length;
 }
 
-void printStatus(unsigned short status) {
+void printStatus(unsigned short status)
+{
 
-    switch(status) {
-        case 0xFFF9: printf("REJECT %x - NOT_PAID\n", NOT_PAID); break;
-        case 0xFFFA: printf("REJECT %x - NOT_EXIST\n", NOT_EXIST); break;
-        case 0xFFFB: printf("ACCESS PERMISSION GRANTED %x - ACCESS_OK\n", ACCESS_OK); break;
+    switch (status)
+    {
+    case 0xFFF9:
+        printf("REJECT %x - NOT_PAID\n", NOT_PAID);
+        break;
+    case 0xFFFA:
+        printf("REJECT %x - NOT_EXIST\n", NOT_EXIST);
+        break;
+    case 0xFFFB:
+        printf("ACCESS PERMISSION GRANTED %x - ACCESS_OK\n", ACCESS_OK);
+        break;
     }
 }
+
+struct sockaddr_in GetServerAddress(int port_no)
+{
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    // htons() which converts a port number in host byte order to a port number in network byte order
+    address.sin_port = htons(port_no);
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
+    return address;
+};

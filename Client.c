@@ -3,7 +3,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/time.h>
-#include <errno.h>
+#include "Tool.h"
 #include "packet.h"
 
 void sendRequestPacket(int client_socket, struct sockaddr_in serverAddress, int technology, int subscriber_no, int segment_number);
@@ -19,16 +19,13 @@ int main()
     client_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     // Initialize Server socket
-    memset(&serverAddress, 0, sizeof(serverAddress));
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(7891);
-    serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+    serverAddress = GetServerAddress(PORT_NO);
 
     // Set timer options on socket
     struct timeval timeout = {3, 0};
     if (setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
     {
-        perror("Error\n");
+        error("Error");
     }
 
     // Nonexistent subscriber
