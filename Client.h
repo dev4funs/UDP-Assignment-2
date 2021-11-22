@@ -22,7 +22,6 @@ void requestIdentification(int client_socket, struct sockaddr_in server_address,
 
 int sendPacket(int client_socket, struct DataPacket req_packet, struct sockaddr_in server_address, char *buffer)
 {
-
   int packet_length = generatePacketBufferToSend(req_packet, buffer);
   sendto(client_socket, buffer, packet_length, 0, (struct sockaddr *)&server_address, sizeof server_address);
   return packet_length;
@@ -54,8 +53,7 @@ void receivePacket(int client_socket, struct sockaddr_in server_address, char *r
       }
       else
       {
-
-        printf("%d.   .....\n", count + 1);
+        printf("%d.  retransmiting...\n", count + 1);
         sendto(client_socket, req_buffer, packet_length, 0, (struct sockaddr *)&server_address, sizeof server_address);
         count++;
       }

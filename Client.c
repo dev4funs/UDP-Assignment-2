@@ -16,7 +16,7 @@ struct Request requests[] = {
 
 int main()
 {
-    // Create client socket
+    // Init socket
     int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
     // Init Server address
     struct sockaddr_in server_address = GetServerAddress(PORT_NO);
