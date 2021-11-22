@@ -25,8 +25,8 @@ int main()
 
     while (1)
     {
-        int recvlen = recvfrom(server_socket, buffer, sizeof(buffer), 0, &sender, &sendsize);
-        if (recvlen >= 0)
+        int recv_len = recvfrom(server_socket, buffer, sizeof(buffer), 0, &sender, &sendsize);
+        if (recv_len >= 0)
         {
             data_packet = parsePacketFromBuffer(buffer);
             printf("\n");
