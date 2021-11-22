@@ -29,7 +29,10 @@ int main()
     }
 
     for (int i = 0; i < 4; i++)
+    {
+        printf("Send packet %d\n", i + 1);
         requestIdentification(client_socket, server_address, requests[i].technology, requests[i].subscriber_no, requests[i].segment_number);
+    }
 
     return 0;
 }

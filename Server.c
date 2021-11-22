@@ -28,13 +28,14 @@ int main()
         int recvlen = recvfrom(server_socket, buffer, sizeof(buffer), 0, &sender, &sendsize);
         if (recvlen >= 0)
         {
-            printf("Received packet %s\n", buffer);
             data_packet = parsePacketFromBuffer(buffer);
+            printf("\n");
+            printf("Received packet %d\n", data_packet.segment_no);
             data_packet.status = verify(num_subscribers, subscriber_info, data_packet);
             printStatus(data_packet.status);
             int packet_length = generatePacketBufferToSend(data_packet, buffer);
             sendto(server_socket, buffer, packet_length, 0, (struct sockaddr *)&sender, sendsize);
-            printf("\n\n");
+            printf("\n");
         }
     }
 
