@@ -7,8 +7,6 @@ struct Request
     int segment_number;
 };
 
-/* ... later, in a scope where `struct element` is visible ... */
-
 struct Request requests[] = {
     {.technology = 4, .subscriber_no = 4085546805, .segment_number = 1},
     {.technology = 1, .subscriber_no = 6693020691, .segment_number = 2},

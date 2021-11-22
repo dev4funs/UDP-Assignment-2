@@ -33,11 +33,6 @@ struct SubscriptionInfo
     char paid;
 };
 
-/**
- * This function builds the buffer to be sent using the data in the data_packet 
- * Input params are data_packet and buffer
- * Output is the length of the data in the buffer
- **/
 int generatePacketBufferToSend(struct DataPacket data_packet, char *buffer)
 {
     int buffer_length = 0;
@@ -71,11 +66,6 @@ int generatePacketBufferToSend(struct DataPacket data_packet, char *buffer)
     return buffer_length;
 }
 
-/**
- * This method decodes data in the buffer into the data packet
- * Input params are buffer and data_packet
- * Output is an int - 
- **/
 struct DataPacket parsePacketFromBuffer(char *buffer)
 {
     struct DataPacket data_packet;
