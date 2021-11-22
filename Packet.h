@@ -9,6 +9,13 @@
 
 const int PORT_NO = 7891;
 
+struct SubscriptionInfo
+{
+    unsigned int subscriber_no;
+    char technology;
+    char paid;
+};
+
 struct Payload
 {
     char technology;
@@ -24,13 +31,6 @@ struct DataPacket
     char length;
     struct Payload payload;
     unsigned short end_packet_id;
-};
-
-struct SubscriptionInfo
-{
-    unsigned int subscriber_no;
-    char technology;
-    char paid;
 };
 
 int generatePacketBufferToSend(struct DataPacket data_packet, char *buffer)
