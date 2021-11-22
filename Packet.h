@@ -145,7 +145,7 @@ struct DataPacket generateReqPacket(int technology, int subscriber_no, int segme
     return req_packet;
 }
 
-struct sockaddr_in GetServerAddress(int port_no)
+struct sockaddr_in getServerAddress(int port_no)
 {
     struct sockaddr_in address;
     memset(&address, 0, sizeof(address));

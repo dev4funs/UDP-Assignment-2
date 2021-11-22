@@ -14,7 +14,7 @@ int main()
     server_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     /*---- Configure server address struct ----*/
-    server_address = GetServerAddress(PORT_NO);
+    server_address = getServerAddress(PORT_NO);
 
     bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address));
 

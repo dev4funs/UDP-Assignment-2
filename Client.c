@@ -19,7 +19,7 @@ int main()
     // Init socket
     int client_socket = socket(AF_INET, SOCK_DGRAM, 0);
     // Init Server address
-    struct sockaddr_in server_address = GetServerAddress(PORT_NO);
+    struct sockaddr_in server_address = getServerAddress(PORT_NO);
 
     // Set timer options on socket
     struct timeval timeout = {3, 0};
