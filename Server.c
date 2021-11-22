@@ -16,7 +16,6 @@ int main()
     /*---- Configure server address struct ----*/
     server_address = GetServerAddress(PORT_NO);
 
-    /*---- Bind the address struct to the socket ----*/
     bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address));
 
     struct sockaddr sender;
