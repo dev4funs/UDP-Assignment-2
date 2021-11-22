@@ -48,7 +48,7 @@ void receivePacket(int client_socket, struct sockaddr_in server_address, char *r
 
       if (recvlen >= 0) // Message Received
       {
-        parsePacketFromBuffer(ack_buffer, &data_packet);
+        data_packet = parsePacketFromBuffer(ack_buffer);
         printStatus(data_packet.status);
         break;
       }

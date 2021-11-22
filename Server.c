@@ -1,143 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
-#include "Packet.h"
-
-int getNumberOfSubscribers();
-void readVerificationDatabaseFromTxt(struct SubscriptionInfo *subscriber_details);
+#include "Server.h"
 
 int main()
 {
-
     struct DataPacket data_packet;
     int num_subscribers = getNumberOfSubscribers();
-    struct SubscriptionInfo subscriber_details[num_subscribers];
-
-    readVerificationDatabaseFromTxt(subscriber_details);
-
-    for (int i = 0; i < num_subscribers; i++)
-    {
-        printf("Subscriber: %u, Technology %d, Paid: %d\n", subscriber_details[i].subscriber_no, subscriber_details[i].technology, subscriber_details[i].paid);
-    }
+    struct SubscriptionInfo subscriber_info[num_subscribers];
+    readVerificationDatabaseFromTxt(subscriber_info);
 
     int server_socket;
     char buffer[1024];
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in server_address;
 
     server_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
     /*---- Configure server address struct ----*/
-    serverAddr = GetServerAddress(PORT_NO);
+    server_address = GetServerAddress(PORT_NO);
 
     /*---- Bind the address struct to the socket ----*/
-    bind(server_socket, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+    bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address));
 
     struct sockaddr sender;
     socklen_t sendsize = sizeof(sender);
     memset(&sender, 0, sizeof(sender));
 
-    // Listening for packets from client indefinitely
     while (1)
     {
-
-        recvfrom(server_socket, buffer, sizeof(buffer), 0, &sender, &sendsize);
-
-        printf("Received packet %s\n", buffer);
-
-        int response = parsePacketFromBuffer(buffer, &data_packet);
-
-        // Verify the subscriber against subscriber_details
-        int i = 0;
-        int subscriberFound = 0;
-        while (i < num_subscribers)
+        int recvlen = recvfrom(server_socket, buffer, sizeof(buffer), 0, &sender, &sendsize);
+        if (recvlen >= 0)
         {
-
-            // Check if subscriber found and if technology matches
-            if (data_packet.payload.subscriber_no == subscriber_details[i].subscriber_no && subscriber_details[i].technology == data_packet.payload.technology)
-            {
-
-                // Verify if paid or not
-                data_packet.status = (subscriber_details[i].paid == 1) ? ACCESS_OK : NOT_PAID;
-                subscriberFound = 1;
-                break;
-            }
-            i++;
+            printf("Received packet %s\n", buffer);
+            data_packet = parsePacketFromBuffer(buffer);
+            data_packet.status = verify(num_subscribers, subscriber_info, data_packet);
+            printStatus(data_packet.status);
+            int packet_length = generatePacketBufferToSend(data_packet, buffer);
+            sendto(server_socket, buffer, packet_length, 0, (struct sockaddr *)&sender, sendsize);
+            printf("\n\n");
         }
-
-        // If subscriber not found or if subscriber found but technology does not match
-        if (subscriberFound == 0)
-        {
-            data_packet.status = NOT_EXIST;
-        }
-
-        printStatus(data_packet.status);
-
-        int packet_length = generatePacketBufferToSend(data_packet, buffer);
-
-        // Send ACK or REJECT packet to client.
-        sendto(server_socket, buffer, packet_length, 0, (struct sockaddr *)&sender, sendsize);
-
-        printf("\n\n");
     }
 
     return 0;
-}
-
-int getNumberOfSubscribers()
-{
-    FILE *fp;
-    fp = fopen("./Verification_Database.txt", "r");
-    char buffer[100];
-    fgets(buffer, 100, fp); //Ignore first line with headings
-
-    char subscriber_number[100];
-    char technology[10];
-    int paid;
-    int lines = 0;
-
-    while (fscanf(fp, "%s %s %d\n", subscriber_number, technology, &paid) == 3)
-    {
-        lines++;
-    }
-    fclose(fp);
-
-    return lines;
-}
-
-void readVerificationDatabaseFromTxt(struct SubscriptionInfo *subscriber_details)
-{
-
-    FILE *fp;
-    fp = fopen("./Verification_Database.txt", "r");
-    char buffer[100];
-    fgets(buffer, 100, fp); //Ignore first line with headings
-
-    char subscriber_number[100];
-    char technology[10];
-    int paid;
-
-    int i = 0;
-
-    while (fscanf(fp, "%s %s %d\n", subscriber_number, technology, &paid) == 3)
-    {
-        // printf("Subscriber: %s, Technology %s, Paid: %d\n", subscriber_number, technology, paid);
-        char subscriber_number_temp[11];
-
-        // Convert string 123-456-7890 to string 1234567890
-        strncpy(subscriber_number_temp, subscriber_number, 3);
-        strncpy(subscriber_number_temp + 3, subscriber_number + 4, 3);
-        strncpy(subscriber_number_temp + 6, subscriber_number + 8, 4);
-
-        // printf("Subscriber int: %s %u\n", subscriber_number_temp, atoi(subscriber_number_temp));
-
-        subscriber_details[i].subscriber_no = atoi(subscriber_number_temp);
-        subscriber_details[i].technology = atoi(technology);
-        subscriber_details[i].paid = paid;
-
-        i++;
-    }
-    fclose(fp);
 }

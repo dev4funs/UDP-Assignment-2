@@ -76,36 +76,36 @@ int generatePacketBufferToSend(struct DataPacket data_packet, char *buffer)
  * Input params are buffer and data_packet
  * Output is an int - 
  **/
-int parsePacketFromBuffer(char *buffer, struct DataPacket *data_packet)
+struct DataPacket parsePacketFromBuffer(char *buffer)
 {
-
+    struct DataPacket data_packet;
     int buffer_length = 0;
 
-    memcpy(&(data_packet->start_packet_id), buffer + buffer_length, 2);
+    memcpy(&(data_packet.start_packet_id), buffer + buffer_length, 2);
     buffer_length += 2;
 
-    data_packet->client_id = buffer[buffer_length];
+    data_packet.client_id = buffer[buffer_length];
     buffer_length += 1;
 
-    memcpy(&(data_packet->status), buffer + buffer_length, 2);
+    memcpy(&(data_packet.status), buffer + buffer_length, 2);
     buffer_length += 2;
 
-    data_packet->segment_no = buffer[buffer_length];
+    data_packet.segment_no = buffer[buffer_length];
     buffer_length += 1;
 
-    data_packet->length = buffer[buffer_length];
+    data_packet.length = buffer[buffer_length];
     buffer_length += 1;
 
-    data_packet->payload.technology = buffer[buffer_length];
+    data_packet.payload.technology = buffer[buffer_length];
     buffer_length += 1;
 
-    memcpy(&(data_packet->payload.subscriber_no), buffer + buffer_length, 4);
+    memcpy(&(data_packet.payload.subscriber_no), buffer + buffer_length, 4);
     buffer_length += 4;
 
-    memcpy(&(data_packet->end_packet_id), buffer + buffer_length, 2);
+    memcpy(&(data_packet.end_packet_id), buffer + buffer_length, 2);
     buffer_length += 2;
 
-    return buffer_length;
+    return data_packet;
 }
 
 char *description(unsigned short code)
